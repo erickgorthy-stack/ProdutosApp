@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProdutosApp.API.Contexts;
+using ProdutosApp.API.Dto_s;
 using ProdutosApp.API.Entities;
 
 namespace ProdutosApp.API.Repositories
@@ -58,6 +59,40 @@ namespace ProdutosApp.API.Repositories
                     .Include(p => p.Categoria)
                     .Where(p => p.Id == id && true)
                     .FirstOrDefault();
+            }
+        }
+        public List<CategoriaQuantidadeResponseDto> AgruparCategoriaPorQuantidade()
+        {
+            using (var dataContext = new DataContext())
+            {
+                return dataContext
+                    .Set<Produto>()
+                    .Include(p => p.Categoria)
+                    .GroupBy(p => p.Categoria.Nome)
+                    .Select(g => new CategoriaQuantidadeResponseDto
+                    {
+                        NomeCategoria = g.Key,
+                        TotalQuantidade = g.Sum(p => p.Quantidade)
+                    })
+                    .OrderByDescending(s => s.TotalQuantidade)
+                    .ToList();
+            }
+        }
+        public List<CategoriaPrecoResponseDto> AgruparCategoriaPorPreco()
+        {
+            using (var dataContext = new DataContext())
+            {
+                return dataContext
+                    .Set<Produto>()
+                    .Include(p => p.Categoria)
+                    .GroupBy(p => p.Categoria.Nome)
+                    .Select(g => new CategoriaPrecoResponseDto
+                    {
+                        NomeCategoria = g.Key,
+                        MediaPreco = Math.Round(g.Average(p => p.Preco),2)
+                    })
+                    .OrderByDescending(s => s.MediaPreco)
+                    .ToList();
             }
         }
     }
